@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../module/user'); // Import the User model
-const bcrypt = require('bcrypt'); // For password hashing
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user'); // Adjust the path as necessary
 
 // Sample route for user login
 router.post('/login', async (req, res) => {
@@ -20,8 +21,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).send('Invalid email or password');
     }
 
-    // If login is successful
-    res.status(200).send('User logged in successfully');
+    // Generate a JWT token
+    const token = jwt.sign(
+      { id: user._id, emailId: user.emailId, role: user.role },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // If login is successful, send the token
+    res.status(200).json({ message: 'User logged in successfully', token });
   } catch (error) {
     res.status(500).send('Error logging in user');
   }
@@ -50,7 +58,7 @@ router.post('/register', async (req, res) => {
       mobileNo
     });
 
-    // Save the user to the database
+    // Save the new user
     await newUser.save();
 
     res.status(201).send('User registered successfully');

@@ -30,10 +30,12 @@ connectDB();
 // Import controllers
 const authController = require('./controllers/authController');
 const productController = require('./controllers/productController');
+const userController = require('./controllers/userController'); 
 
 // Use controllers
 app.use('/api/auth', authController);
 app.use('/api/products', productController);
+app.use('/api/users', userController); 
 
 // Sample Route
 app.get('/', (req, res) => {
