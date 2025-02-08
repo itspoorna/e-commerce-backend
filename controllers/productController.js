@@ -98,22 +98,23 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Cannot find product' });
     }
 
-    if (product.vendor.toString() !== req.user.id) {
+    if (product.vendor.toString() !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'You do not have permission to update this product' });
     }
 
+    const updateFields = {};
+    if (req.body.name != null) updateFields.name = req.body.name;
+    if (req.body.description != null) updateFields.description = req.body.description;
+    if (req.body.category != null) updateFields.category = req.body.category;
+    if (req.body.price != null) updateFields.price = req.body.price;
+    if (req.body.discount != null) updateFields.discount = req.body.discount;
+    if (req.body.startDate != null) updateFields.startDate = req.body.startDate;
+    if (req.body.expiryDate != null) updateFields.expiryDate = req.body.expiryDate;
+    if (req.body.imageUrl != null) updateFields.imageUrl = req.body.imageUrl;
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      {
-        name: req.body.name,
-        description: req.body.description,
-        category: req.body.category,
-        price: req.body.price,
-        discount: req.body.discount,
-        startDate: req.body.startDate,
-        expiryDate: req.body.expiryDate,
-        imageUrl: req.body.imageUrl
-      },
+      updateFields,
       { new: true }
     );
 
@@ -131,11 +132,12 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Cannot find product' });
     }
 
-    if (product.vendor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'You do not have permission to delete this product' });
+    if (product.vendor.toString() !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+      return res.status(403).json({ message: 'You do not have permission to update this product' });
     }
 
-    await product.remove();
+    await Product.deleteOne({ _id: req.params.id });
+
     res.json({ message: 'Product deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
